@@ -5,7 +5,6 @@ from sqlalchemy import pool
 
 from alembic import context
 from db.database import Base
-from models.db_models import *  # 모든 모델을 불러와서 Base에 등록
 from config import settings
 
 # this is the Alembic Config object, which provides
