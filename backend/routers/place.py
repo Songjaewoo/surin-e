@@ -19,6 +19,7 @@ async def get_places(
         db: Session = Depends(get_db),
         current_user_id: int = Depends(get_current_user_id)):
 
+    print('current_user_id', current_user_id)
     offset = (page - 1) * size
     total_count, result = crud.get_places(db, offset=offset, limit=size, search=search, current_user_id=current_user_id)
 

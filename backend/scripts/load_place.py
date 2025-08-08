@@ -11,7 +11,7 @@ if project_root not in sys.path:
 # -------------------------
 
 from db.database import SessionLocal, engine
-from models.db_models import Place, Base
+from models.db_models import PlaceModel, Base
 
 
 def load_places_from_json(db: Session, json_path: str):
@@ -34,7 +34,7 @@ def load_places_from_json(db: Session, json_path: str):
 
     # 성능 향상을 위해 기존 데이터를 메모리에 세트로 로드
     print("기존 장소 데이터를 로드하여 중복을 확인합니다...")
-    existing_places = {(p.name, p.address) for p in db.query(Place.name, Place.address).all()}
+    existing_places = {(p.name, p.address) for p in db.query(PlaceModel.name, PlaceModel.address).all()}
     print(f"현재 데이터베이스에 {len(existing_places)}개의 장소가 있습니다.")
 
     places_to_add = []
@@ -72,7 +72,7 @@ def load_places_from_json(db: Session, json_path: str):
             continue
 
         # 6. Place 객체 생성 및 리스트에 추가
-        new_place = Place(
+        new_place = PlaceModel(
             name=name,
             address=address,
             x_position=x_pos,

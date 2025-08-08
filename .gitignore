@@ -50,3 +50,5 @@ frontend/ios/.generated/
 frontend/ios/Flutter/Generated.xcconfig
 frontend/ios/Flutter/flutter_export_environment.sh
 frontend/ios/Runner/GeneratedPluginRegistrant.*
+
+backend/tests/

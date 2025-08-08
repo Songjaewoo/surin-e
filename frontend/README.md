@@ -1,56 +1,16 @@
-# Mobile App
+# frontend
 
-Flutter 기반의 장소 북마크 및 추천 모바일 앱
+A new Flutter project.
 
-## 개발 환경 설정
+## Getting Started
 
-### 1. Flutter 설치
-Flutter 공식 문서를 참고하여 Flutter SDK를 설치하세요.
-- https://docs.flutter.dev/get-started/install
+This project is a starting point for a Flutter application.
 
-### 2. 의존성 설치
-```bash
-flutter pub get
-```
+A few resources to get you started if this is your first Flutter project:
 
-### 3. 앱 실행
-```bash
-# 디버그 모드
-flutter run
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-# 특정 기기에서 실행
-flutter run -d <device_id>
-
-# 사용 가능한 기기 목록 확인
-flutter devices
-```
-
-## 빌드
-
-### Android APK
-```bash
-flutter build apk
-```
-
-### iOS (macOS에서만)
-```bash
-flutter build ios
-```
-
-## 프로젝트 구조 (예정)
-```
-mobile/
-├── lib/
-│   ├── main.dart           # 앱 진입점
-│   ├── models/             # 데이터 모델
-│   ├── screens/            # 화면 위젯
-│   ├── widgets/            # 재사용 가능한 위젯
-│   ├── services/           # API 서비스
-│   └── utils/              # 유틸리티
-├── android/                # Android 설정
-├── ios/                    # iOS 설정
-└── pubspec.yaml           # Flutter 패키지 설정
-```
-
-## API 서버 연결
-백엔드 API 서버 주소: `http://localhost:8000`
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

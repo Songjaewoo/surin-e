@@ -1,12 +1,14 @@
 from __future__ import annotations
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr, model_validator
+from datetime import datetime
 
 
 class Place(BaseModel):
     id: int
     name: str
     address: str
+    image_url: Optional[str] = 'http://imgnews.naver.net/image/5165/2017/07/17/0000310698_001_20170717221957660.jpg'
     x_position: float
     y_position: float
     is_bookmark: Optional[bool] = False
@@ -60,6 +62,25 @@ class User(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UserLoginResponse(BaseModel):
+    id: int
+    nickname: str
+    email: str
+
+class UserCreate(BaseModel):
+    nickname: str
+    email: Optional[EmailStr] = None
+    password: str
+
+# JWT 로그인 요청 시 필요한 모델
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+# 토큰 페이로드 모델
+class TokenData(BaseModel):
+    user_id: str = None
 
 
 # API 응답 모델

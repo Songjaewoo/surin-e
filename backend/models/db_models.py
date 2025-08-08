@@ -32,5 +32,6 @@ class UserModel(Base):
     id = Column(Integer, primary_key=True)
     nickname = Column(String(50), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
+    password = Column(String(100), nullable=False)
     bookmark = relationship("BookmarkModel", back_populates="user")
 
