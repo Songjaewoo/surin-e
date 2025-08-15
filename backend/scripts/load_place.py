@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from sqlalchemy.orm import Session
+from pyproj import Transformer
 
 # --- 프로젝트 경로 설정 ---
 # 이 스크립트를 어느 위치에서 실행하든 프로젝트의 모듈을 찾을 수 있도록 경로를 설정합니다.
@@ -13,6 +14,8 @@ if project_root not in sys.path:
 from db.database import SessionLocal, engine
 from models.db_models import PlaceModel, Base
 
+# EPSG:2097 → EPSG:4326 변환기 (X=경도, Y=위도 순서 주의)
+transformer = Transformer.from_crs("EPSG:2097", "EPSG:4326", always_xy=True)
 
 def load_places_from_json(db: Session, json_path: str):
     """
@@ -59,9 +62,10 @@ def load_places_from_json(db: Session, json_path: str):
 
         # 4. 데이터 타입 변환 및 정리
         try:
-            # 좌표 값의 양쪽 공백을 제거하고 float으로 변환
-            x_pos = float(x_str.strip())
-            y_pos = float(y_str.strip())
+            x_pos = str(x_str.strip())
+            y_pos = str(y_str.strip())
+
+            x, y = transformer.transform(x_pos, y_pos)
         except (ValueError, AttributeError):
             # 변환 실패 시 해당 레코드 건너뛰기
             print(f"좌표 변환 실패로 레코드를 건너뜁니다: name='{name}'")
@@ -75,8 +79,9 @@ def load_places_from_json(db: Session, json_path: str):
         new_place = PlaceModel(
             name=name,
             address=address,
-            x_position=x_pos,
-            y_position=y_pos
+            x_position=x,
+            y_position=y,
+            image_url=''
         )
         places_to_add.append(new_place)
         existing_places.add((name, address))  # 현재 세션 내 중복 방지

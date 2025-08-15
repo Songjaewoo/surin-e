@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional, List
 from pydantic import BaseModel, Field, EmailStr, model_validator
-from datetime import datetime
+from datetime import date, time, datetime
 
 
 class Place(BaseModel):
@@ -9,8 +9,8 @@ class Place(BaseModel):
     name: str
     address: str
     image_url: Optional[str] = 'http://imgnews.naver.net/image/5165/2017/07/17/0000310698_001_20170717221957660.jpg'
-    x_position: float
-    y_position: float
+    x_position: str
+    y_position: str
     is_bookmark: Optional[bool] = False
 
     class Config:
@@ -19,14 +19,16 @@ class Place(BaseModel):
 class PlaceCreate(BaseModel):
     name: str
     address: str
-    x_position: float
-    y_position: float
+    x_position: str
+    y_position: str
+    image_url: Optional[str] = None
 
 class PlaceUpdate(BaseModel):
     name: Optional[str] = None
     address: Optional[str] = None
-    x_position: Optional[float] = None
-    y_position: Optional[float] = None
+    x_position: Optional[str] = None
+    y_position: Optional[str] = None
+    image_url: Optional[str] = None
 
 class PlacePagingResponse(BaseModel):
     total: int
@@ -54,6 +56,36 @@ class BookmarkPagingResponse(BaseModel):
     total: int
     result: List[Bookmark]
 
+class Record(BaseModel):
+    id: int
+    user_id: int
+    place_id: int
+    record_date: date
+    start_time: time
+    end_time: time
+    pool_length: float
+    swim_distance: int
+    memo: str
+    created_at: datetime
+    updated_at: datetime
+    place : Place
+
+    class Config:
+        from_attributes = True
+
+class RecordCreate(BaseModel):
+    place_id: int
+    record_date: date = date.today()
+    start_time: time = datetime.now().time()
+    end_time: time = datetime.now().time()
+    pool_length: float = 25
+    swim_distance: int = 0
+    memo: str = ''
+
+class RecordPagingResponse(BaseModel):
+    total: int
+    result: List[Record]
+
 class User(BaseModel):
     id: int
     nickname: str
@@ -70,7 +102,7 @@ class UserLoginResponse(BaseModel):
 
 class UserCreate(BaseModel):
     nickname: str
-    email: Optional[EmailStr] = None
+    email: EmailStr
     password: str
 
 # JWT 로그인 요청 시 필요한 모델

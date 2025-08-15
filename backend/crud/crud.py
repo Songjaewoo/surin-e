@@ -2,12 +2,51 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from sqlalchemy.sql.expression import case, literal, and_
 from typing import List, Optional, Tuple
-from models.db_models import PlaceModel, BookmarkModel, UserModel
-from schemas.models import Place, Bookmark, UserCreate, User
+from models.db_models import PlaceModel, BookmarkModel, UserModel, RecordModel
+from schemas.models import Place, Bookmark, UserCreate, User, Record
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+def get_records(db: Session,
+                offset: int,
+                limit: int,
+                current_user_id: int) -> Tuple[int, List[Record]]:
+
+    query = db.query(RecordModel)
+    query = query.filter(RecordModel.user_id == current_user_id)
+
+    total_count = query.count()
+
+    result = (query.options(joinedload(RecordModel.place))
+                .order_by(RecordModel.record_date.desc())
+                .order_by(RecordModel.start_time.desc())
+                .offset(offset)
+                .limit(limit)
+                .all())
+
+    return total_count, result
+
+
+def create_record(db, data, current_user_id):
+    record = RecordModel(
+        user_id=current_user_id,
+        place_id=data.place_id,
+        record_date=data.record_date,
+        start_time=data.start_time,
+        end_time=data.end_time,
+        pool_length=data.pool_length,
+        swim_distance=data.swim_distance,
+        memo=data.memo
+    )
+
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+    return record
+def get_record_detail(db, record_id, current_user_id):
+    return None
 def get_places(db: Session,
                offset: int,
                limit: int,
@@ -156,3 +195,5 @@ def create_user(db: Session, user: UserCreate):
 
 def get_user_by_id(db: Session, user_id: str):
     return db.query(UserModel).filter(UserModel.id == user_id).first()
+
+

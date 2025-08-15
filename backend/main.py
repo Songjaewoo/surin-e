@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 from crud import crud
 from dependencies import create_access_token, get_current_user
 from models.db_models import UserModel
-from routers import place, bookmark
+from routers import place, bookmark, record
 from db.database import engine, get_db
 from models import db_models
 import uvicorn
@@ -42,22 +42,12 @@ app.add_middleware(
 # 라우터 등록
 app.include_router(place.router)
 app.include_router(bookmark.router)
+app.include_router(record.router)
 
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-@app.get("/login")
-async def login(request: Request):
-    user_id = 1
-    request.session["user_id"] = user_id
-    return {"user_id": user_id}
-
-@app.get("/logout")
-async def logout(request: Request):
-    request.session.pop("user_id", None)
-    return {"message": "User is now logged out."}
 
 @app.post("/register", response_model=APIResponse)
 def register_user(user: UserCreate,
