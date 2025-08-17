@@ -12,11 +12,12 @@ from passlib.context import CryptContext
 from crud import crud
 from dependencies import create_access_token, get_current_user
 from models.db_models import UserModel
-from routers import place, bookmark, record
+from routers import place, bookmark, record, user
 from db.database import engine, get_db
 from models import db_models
 import uvicorn
 from schemas.models import User, UserCreate, APIResponse, Token, TokenData, UserLoginResponse
+from config import settings
 
 # 데이터베이스 테이블 생성
 db_models.Base.metadata.create_all(bind=engine)
@@ -43,24 +44,12 @@ app.add_middleware(
 app.include_router(place.router)
 app.include_router(bookmark.router)
 app.include_router(record.router)
+app.include_router(user.router)
 
-app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-@app.post("/register", response_model=APIResponse)
-def register_user(user: UserCreate,
-                  db: Session = Depends(get_db)):
-
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="email already registered")
-
-    db_user = crud.create_user(db=db, user=user)
-    return {"data": {"user_id" : db_user.id},
-            "success": True,
-            "message": "User created successfully"}
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(email: str = Body(..., description="사용자 이메일"),
@@ -74,16 +63,12 @@ async def login_for_access_token(email: str = Body(..., description="사용자 �
             detail="Incorrect nickname or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    print('user.id', user.id)
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
     access_token = create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
+        data={"sub": str(user.id)}, expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/me", response_model=UserLoginResponse)
-async def read_users_me(current_user: UserModel = Depends(get_current_user)):
-    return current_user
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

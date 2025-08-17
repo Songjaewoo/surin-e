@@ -50,9 +50,14 @@ class RecordModel(Base):
 class UserModel(Base):
     __tablename__ = 'user'
 
-    id = Column(Integer, primary_key=True)
-    nickname = Column(String(50), unique=True, nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    password = Column(String(100), nullable=False)
-    bookmark = relationship("BookmarkModel", back_populates="user")
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, nullable=False)
+    nickname = Column(String(50), nullable=True)
+    password = Column(String(255), nullable=True)  # 일반 이메일 가입 시 필요
+    profile_image = Column(String(255), nullable=True)
+    provider = Column(String(20), nullable=True)  # 'kakao', 'google', 'naver'
+    provider_user_id = Column(String(255), nullable=True)  # 소셜에서 제공하는 유니크 ID
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
+    bookmark = relationship("BookmarkModel", back_populates="user")

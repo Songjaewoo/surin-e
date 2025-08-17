@@ -185,7 +185,7 @@ def create_user(db: Session, user: UserCreate):
     db_user = UserModel(
         nickname=user.nickname,
         email=user.email,
-        password=hash_password
+        password=hash_password,
     )
     db.add(db_user)
     db.commit()

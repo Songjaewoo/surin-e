@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=RecordPagingResponse)
-async def get_records(
+def get_records(
         page: int = Query(1, ge=1, description="페이지 번호 (1부터 시작)"),
         size: int = Query(10, ge=1, le=50, description="페이지당 항목 수 (최대 50)"),
         db: Session = Depends(get_db),
@@ -37,7 +37,7 @@ def create_record(data: RecordCreate,
         data={"record_id": result.id})
 
 @router.get("/{record_id}", response_model=Place)
-async def get_record_detail(
+def get_record_detail(
         record_id: int,
         db: Session = Depends(get_db),
         current_user_id: int = Depends(get_current_user_id)):

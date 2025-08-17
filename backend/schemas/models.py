@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Optional, List
 from pydantic import BaseModel, Field, EmailStr, model_validator
 from datetime import date, time, datetime
@@ -90,6 +89,12 @@ class User(BaseModel):
     id: int
     nickname: str
     email: str
+    password: str
+    profile_image : str
+    provider: str
+    provider_user_id: str
+    created_at: datetime
+    updated_at: datetime
     bookmarks: List[Bookmark]
 
     class Config:
@@ -103,7 +108,12 @@ class UserLoginResponse(BaseModel):
 class UserCreate(BaseModel):
     nickname: str
     email: EmailStr
-    password: str
+    password: Optional[str] = None
+    profile_image : Optional[str] = None
+    provider: Optional[str] = None
+    provider_user_id: Optional[str] = None
+    created_at: Optional[datetime] = datetime.now()
+    updated_at: Optional[datetime] = datetime.now()
 
 # JWT 로그인 요청 시 필요한 모델
 class Token(BaseModel):
