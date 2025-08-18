@@ -39,18 +39,11 @@ app = FastAPI()
 SECRET_KEY = "YOUR_SECRET_KEY"
 ALGORITHM = "HS256"
 
-class KakaoToken(BaseModel):
-    access_token: str
-
-
-class NaverToken(BaseModel):
-    access_token: str
-
-class GoogleToken(BaseModel):
+class AccessToken(BaseModel):
     access_token: str
 
 @router.post("/login/kakao")
-def kakao_login(data: NaverToken, db: Session = Depends(get_db)):
+def kakao_login(data: AccessToken, db: Session = Depends(get_db)):
     headers = {"Authorization": f"Bearer {data.access_token}"}
     res = requests.get("https://kapi.kakao.com/v2/user/me", headers=headers)
 
@@ -92,7 +85,7 @@ def kakao_login(data: NaverToken, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/login/naver")
-def naver_login(data: KakaoToken, db: Session = Depends(get_db)):
+def naver_login(data: AccessToken, db: Session = Depends(get_db)):
     headers = {"Authorization": f"Bearer {data.access_token}"}
     try:
         # 네이버 사용자 정보 조회 API 호출
@@ -148,7 +141,7 @@ def naver_login(data: KakaoToken, db: Session = Depends(get_db)):
 
 
 @router.post("/login/google")
-async def google_login(data: GoogleToken, db: Session = Depends(get_db)):
+async def google_login(data: AccessToken, db: Session = Depends(get_db)):
     headers = {"Authorization": f"Bearer {data.access_token}"}
     res = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers=headers)
 
