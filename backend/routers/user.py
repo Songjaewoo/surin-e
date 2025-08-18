@@ -154,7 +154,6 @@ async def google_login(data: AccessToken, db: Session = Depends(get_db)):
     nickname = google_user.get("name", "구글유저")
     profile_image = google_user.get("picture", "")
 
-
     user = db.query(UserModel).filter(
         UserModel.provider == "google",
         UserModel.provider_user_id == provider_user_id
