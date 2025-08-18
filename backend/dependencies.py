@@ -36,7 +36,6 @@ def get_current_user(db: Session = Depends(get_db),
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str = payload.get("sub")
-        print('user_id', user_id)
         if user_id is None:
             raise credentials_exception
         token_data = TokenData(user_id=user_id)

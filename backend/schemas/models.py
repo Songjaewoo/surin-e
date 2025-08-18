@@ -104,12 +104,14 @@ class UserLoginResponse(BaseModel):
     id: int
     nickname: str
     email: str
+    profile_image: Optional[str] = None
+    provider: Optional[str] = None
 
 class UserCreate(BaseModel):
     nickname: str
     email: EmailStr
     password: Optional[str] = None
-    profile_image : Optional[str] = None
+    profile_image: Optional[str] = None
     provider: Optional[str] = None
     provider_user_id: Optional[str] = None
     created_at: Optional[datetime] = datetime.now()
