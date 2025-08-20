@@ -1,17 +1,14 @@
-from fastapi import APIRouter, HTTPException, Depends, Query, FastAPI
+from fastapi import APIRouter, HTTPException, Depends, Query, FastAPI, Body, status
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from config import settings
 from crud import crud
 from models.db_models import RecordModel, UserModel
 from schemas.models import Place, PlacePagingResponse, RecordPagingResponse, APIResponse, RecordCreate, UserCreate, \
-    UserLoginResponse, User
+    UserLoginResponse, User, AccessToken, Token
 from db.database import get_db
 from dependencies import get_current_user_id, get_current_user, create_access_token
-from pydantic import BaseModel
-from jose import jwt
-from datetime import datetime, timedelta
 import requests
-import time
 
 router = APIRouter(
     prefix="/users",
@@ -19,13 +16,15 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 @router.post("/", response_model=APIResponse)
 def create_record(data: UserCreate,
                   db: Session = Depends(get_db)):
 
     db_user = crud.get_user_by_email(db, email=data.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="email already registered")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="email already registered")
 
     db_user = crud.create_user(db=db, user=data)
 
@@ -34,15 +33,25 @@ def create_record(data: UserCreate,
         message="User created successfully",
         data={"user_id": db_user.id})
 
-app = FastAPI()
+@router.post("/login/local", response_model=Token)
+async def login_for_access_token(email: str = Body(..., description="사용자 이메일"),
+                                 password: str = Body(..., description="사용자 비밀번호"),
+                                 db: Session = Depends(get_db)):
 
-SECRET_KEY = "YOUR_SECRET_KEY"
-ALGORITHM = "HS256"
+    user = crud.get_user_by_email(db, email=email)
+    if not user or not pwd_context.verify(password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
 
-class AccessToken(BaseModel):
-    access_token: str
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
 
-@router.post("/login/kakao")
+    return Token(access_token=access_token, token_type="bearer")
+
+@router.post("/login/kakao", response_model=Token)
 def kakao_login(data: AccessToken, db: Session = Depends(get_db)):
     headers = {"Authorization": f"Bearer {data.access_token}"}
     res = requests.get("https://kapi.kakao.com/v2/user/me", headers=headers)
@@ -82,9 +91,9 @@ def kakao_login(data: AccessToken, db: Session = Depends(get_db)):
     )
 
     print('access_token', access_token)
-    return {"access_token": access_token, "token_type": "bearer"}
+    return Token(access_token=access_token, token_type="bearer")
 
-@router.post("/login/naver")
+@router.post("/login/naver", response_model=Token)
 def naver_login(data: AccessToken, db: Session = Depends(get_db)):
     headers = {"Authorization": f"Bearer {data.access_token}"}
     try:
@@ -137,10 +146,10 @@ def naver_login(data: AccessToken, db: Session = Depends(get_db)):
 
     print('access_token', access_token)
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return Token(access_token=access_token, token_type="bearer")
 
 
-@router.post("/login/google")
+@router.post("/login/google", response_model=Token)
 async def google_login(data: AccessToken, db: Session = Depends(get_db)):
     headers = {"Authorization": f"Bearer {data.access_token}"}
     res = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers=headers)
@@ -178,7 +187,7 @@ async def google_login(data: AccessToken, db: Session = Depends(get_db)):
         expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return Token(access_token=access_token, token_type="bearer")
 
 @router.get("/me", response_model=UserLoginResponse)
 async def read_users_me(current_user: UserModel = Depends(get_current_user)):

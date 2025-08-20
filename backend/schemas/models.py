@@ -126,6 +126,8 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: str = None
 
+class AccessToken(BaseModel):
+    access_token: str
 
 # API 응답 모델
 class APIResponse(BaseModel):

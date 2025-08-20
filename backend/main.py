@@ -48,27 +48,5 @@ app.include_router(user.router)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-@app.post("/token", response_model=Token)
-async def login_for_access_token(email: str = Body(..., description="사용자 이메일"),
-                                 password: str = Body(..., description="사용자 비밀번호"),
-                                 db: Session = Depends(get_db)):
-
-    user = crud.get_user_by_email(db, email=email)
-    if not user or not pwd_context.verify(password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect nickname or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
