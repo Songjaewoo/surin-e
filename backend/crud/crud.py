@@ -196,4 +196,31 @@ def create_user(db: Session, user: UserCreate):
 def get_user_by_id(db: Session, user_id: str):
     return db.query(UserModel).filter(UserModel.id == user_id).first()
 
+def exist_nickname(db: Session, nickname: str):
+    result = db.query(UserModel).filter(UserModel.nickname == nickname).first()
+    if result:
+        return True
+    else:
+        return False
 
+
+def get_social_user(db: Session, provider_user_id: str, provider: str):
+    result = db.query(UserModel).filter(UserModel.provider == provider,
+                                      UserModel.provider_user_id == provider_user_id).first()
+
+    return result
+
+
+def create_social_user(db: Session, email: str, nickname: str, provider_user_id: str, provider: str):
+    user = UserModel(
+        email=email,
+        nickname=nickname,
+        provider=provider,
+        provider_user_id=provider_user_id
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user

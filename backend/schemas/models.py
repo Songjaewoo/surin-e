@@ -108,7 +108,7 @@ class UserLoginResponse(BaseModel):
     provider: Optional[str] = None
 
 class UserCreate(BaseModel):
-    nickname: str
+    nickname: Optional[str] = None
     email: EmailStr
     password: Optional[str] = None
     profile_image: Optional[str] = None

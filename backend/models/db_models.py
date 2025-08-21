@@ -52,11 +52,11 @@ class UserModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, nullable=False)
-    nickname = Column(String(50), nullable=True)
-    password = Column(String(255), nullable=True)  # 일반 이메일 가입 시 필요
+    nickname = Column(String(50), unique=True, nullable=False)
+    password = Column(String(255), nullable=True)
     profile_image = Column(String(255), nullable=True)
     provider = Column(String(20), nullable=True)  # 'kakao', 'google', 'naver'
-    provider_user_id = Column(String(255), nullable=True)  # 소셜에서 제공하는 유니크 ID
+    provider_user_id = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 

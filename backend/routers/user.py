@@ -9,6 +9,7 @@ from schemas.models import Place, PlacePagingResponse, RecordPagingResponse, API
 from db.database import get_db
 from dependencies import get_current_user_id, get_current_user, create_access_token
 import requests
+from util.create_nickname import NicknameGenerator
 
 router = APIRouter(
     prefix="/users",
@@ -26,6 +27,14 @@ def create_record(data: UserCreate,
     if db_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="email already registered")
 
+    nickname_generator = NicknameGenerator()
+    random_nickname = nickname_generator.create()
+    exist_nickname = crud.exist_nickname(db, random_nickname)
+    while exist_nickname:
+        random_nickname = nickname_generator.create()
+        exist_nickname = crud.exist_nickname(db, random_nickname)
+
+    data.nickname = random_nickname
     db_user = crud.create_user(db=db, user=data)
 
     return APIResponse(
@@ -60,44 +69,33 @@ def kakao_login(data: AccessToken, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid Kakao token")
 
     kakao_user = res.json()
+    provider = 'kakao'
     provider_user_id = str(kakao_user.get("id"))
     kakao_account = kakao_user.get("kakao_account", {})
-    profile = kakao_account.get("profile", {})
-
     email = kakao_account.get("email")
-    nickname = profile.get("nickname", "카카오유저")
-    profile_image = profile.get("profile_image_url")
 
-    user = db.query(UserModel).filter(UserModel.provider == "kakao", UserModel.provider_user_id == provider_user_id).first()
+    user = crud.get_social_user(db, provider_user_id, provider)
 
-    # 2. 없으면 신규 회원 등록
     if not user:
-        user = UserModel(
-            email=email,
-            nickname=nickname,
-            profile_image=profile_image,
-            provider="kakao",
-            provider_user_id=provider_user_id
-        )
+        nickname_generator = NicknameGenerator()
+        random_nickname = nickname_generator.create()
+        exist_nickname = crud.exist_nickname(db, random_nickname)
+        while exist_nickname:
+            random_nickname = nickname_generator.create()
+            exist_nickname = crud.exist_nickname(db, random_nickname)
 
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-
-        print('user', user)
+        user = crud.create_social_user(db, email, random_nickname, provider_user_id, provider)
 
     access_token = create_access_token(
         data={"sub": str(user.id)}, expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
-    print('access_token', access_token)
     return Token(access_token=access_token, token_type="bearer")
 
 @router.post("/login/naver", response_model=Token)
 def naver_login(data: AccessToken, db: Session = Depends(get_db)):
     headers = {"Authorization": f"Bearer {data.access_token}"}
     try:
-        # 네이버 사용자 정보 조회 API 호출
         res = requests.get("https://openapi.naver.com/v1/nid/me", headers=headers)
         res.raise_for_status()  # 200 OK가 아니면 예외 발생
 
@@ -108,43 +106,26 @@ def naver_login(data: AccessToken, db: Session = Depends(get_db)):
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=400, detail=f"Failed to get user info from Naver: {e}")
 
-    print(naver_user)
-
-    # 네이버 API 응답에서 사용자 정보 추출
+    provider = 'naver'
     provider_user_id = str(naver_user.get("id"))
     email = naver_user.get("email")
-    nickname = naver_user.get("nickname", "네이버유저")
-    profile_image = naver_user.get("profile_image", "")
 
-    # 1. DB에서 기존 회원 조회
-    user = db.query(UserModel).filter(
-        UserModel.provider == "naver",
-        UserModel.provider_user_id == provider_user_id
-    ).first()
+    user = crud.get_social_user(db, provider_user_id, provider)
 
-    # 2. 없으면 신규 회원 등록
     if not user:
-        user = UserModel(
-            email=email,
-            nickname=nickname,
-            profile_image=profile_image,
-            provider="naver",
-            provider_user_id=provider_user_id
-        )
+        nickname_generator = NicknameGenerator()
+        random_nickname = nickname_generator.create()
+        exist_nickname = crud.exist_nickname(db, random_nickname)
+        while exist_nickname:
+            random_nickname = nickname_generator.create()
+            exist_nickname = crud.exist_nickname(db, random_nickname)
 
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        user = crud.create_social_user(db, email, random_nickname, provider_user_id, provider)
 
-        print('user', user)
-
-    # 3. JWT 토큰 생성 및 반환
     access_token = create_access_token(
         data={"sub": str(user.id)},
         expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
-
-    print('access_token', access_token)
 
     return Token(access_token=access_token, token_type="bearer")
 
@@ -158,30 +139,22 @@ async def google_login(data: AccessToken, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid Google token")
 
     google_user = res.json()
+    provider = 'google'
     provider_user_id = google_user.get("id")
     email = google_user.get("email")
-    nickname = google_user.get("name", "구글유저")
-    profile_image = google_user.get("picture", "")
 
-    user = db.query(UserModel).filter(
-        UserModel.provider == "google",
-        UserModel.provider_user_id == provider_user_id
-    ).first()
+    user = crud.get_social_user(db, provider_user_id, provider)
 
-    # 2. 없으면 신규 회원 등록
     if not user:
-        user = UserModel(
-            email=email,
-            nickname=nickname,
-            profile_image=profile_image,
-            provider="google",
-            provider_user_id=provider_user_id
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        nickname_generator = NicknameGenerator()
+        random_nickname = nickname_generator.create()
+        exist_nickname = crud.exist_nickname(db, random_nickname)
+        while exist_nickname:
+            random_nickname = nickname_generator.create()
+            exist_nickname = crud.exist_nickname(db, random_nickname)
 
-    # 3. JWT 토큰 생성 및 반환
+        user = crud.create_social_user(db, email, random_nickname, provider_user_id, provider)
+
     access_token = create_access_token(
         data={"sub": str(user.id)},
         expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES
