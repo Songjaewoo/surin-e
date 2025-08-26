@@ -169,12 +169,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4),
                             ),
+                            backgroundColor: Colors.indigoAccent,
                           ),
                           child: const Padding(
                             padding: EdgeInsets.all(10.0),
                             child: Text(
                               '로그인',
                               style: TextStyle(
+                                color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),

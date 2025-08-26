@@ -43,32 +43,38 @@ class _MainScreenState extends State<MainScreen> {
         children: _widgetOptions,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: const Color(0xff757575),
+        type: BottomNavigationBarType.fixed,
+        onTap: _onItemTapped,
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home_rounded),
             label: '홈',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
+            icon: Icon(Icons.map_outlined),
+            activeIcon: Icon(Icons.map_rounded),
             label: '수영장 지도',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.pool),
+            icon: Icon(Icons.pool_outlined),
+            activeIcon: Icon(Icons.pool),
             label: '내 수영장',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.book),
-            label: '수영일기',
+            icon: Icon(Icons.edit_calendar_outlined),
+            activeIcon: Icon(Icons.edit_calendar),
+            label: '수영 일기',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person_outline_rounded),
+            activeIcon: Icon(Icons.person_rounded),
             label: '내 정보',
           ),
         ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
       ),
     );
   }
